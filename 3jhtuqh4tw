@@ -1,0 +1,439 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Valid Keys Table
+local validKeys = {
+    ["67"] = true,
+}
+
+-- ScreenGui Setup
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RGB_TP_Gui_v2"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+----------------------------------------------------
+-- HELPER FUNCTIONS
+----------------------------------------------------
+local function applyRGB(stroke)
+    task.spawn(function()
+        local hue = 0
+        while stroke and stroke.Parent do
+            hue = (hue + 0.005) % 1
+            stroke.Color = Color3.fromHSV(hue, 1, 1)
+            task.wait(0.02)
+        end
+    end)
+end
+
+----------------------------------------------------
+-- STEP 1: KEY SYSTEM GUI
+----------------------------------------------------
+local keyFrame = Instance.new("Frame")
+keyFrame.Size = UDim2.new(0, 320, 0, 220)
+keyFrame.Position = UDim2.new(0.5, -160, 0.5, -110)
+keyFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+keyFrame.BorderSizePixel = 0
+keyFrame.Active = true
+keyFrame.Draggable = true
+keyFrame.Parent = screenGui
+
+local keyCorner = Instance.new("UICorner")
+keyCorner.CornerRadius = UDim.new(0, 10)
+keyCorner.Parent = keyFrame
+
+local keyStroke = Instance.new("UIStroke")
+keyStroke.Thickness = 3
+keyStroke.Parent = keyFrame
+applyRGB(keyStroke)
+
+local keyTitle = Instance.new("TextLabel")
+keyTitle.Size = UDim2.new(1, 0, 0, 35)
+keyTitle.BackgroundTransparency = 1
+keyTitle.Text = "Key System"
+keyTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyTitle.TextSize = 18
+keyTitle.Font = Enum.Font.SourceSansBold
+keyTitle.Parent = keyFrame
+
+local hintLabel = Instance.new("TextLabel")
+hintLabel.Size = UDim2.new(1, 0, 0, 25)
+hintLabel.Position = UDim2.new(0, 0, 0.2, 0)
+hintLabel.BackgroundTransparency = 1
+hintLabel.Text = "HINT: 60 + 7?"
+hintLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
+hintLabel.TextSize = 14
+hintLabel.Font = Enum.Font.SourceSansItalic
+hintLabel.Parent = keyFrame
+
+local keyBox = Instance.new("TextBox")
+keyBox.Size = UDim2.new(0.8, 0, 0, 35)
+keyBox.Position = UDim2.new(0.1, 0, 0.4, 0)
+keyBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+keyBox.Text = ""
+keyBox.PlaceholderText = "Enter Key Here..."
+keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBox.TextSize = 14
+keyBox.Font = Enum.Font.SourceSans
+keyBox.Parent = keyFrame
+
+local keyBoxCorner = Instance.new("UICorner")
+keyBoxCorner.CornerRadius = UDim.new(0, 6)
+keyBoxCorner.Parent = keyBox
+
+local submitBtn = Instance.new("TextButton")
+submitBtn.Size = UDim2.new(0.8, 0, 0, 35)
+submitBtn.Position = UDim2.new(0.1, 0, 0.65, 0)
+submitBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+submitBtn.Text = "Submit Key"
+submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+submitBtn.TextSize = 15
+submitBtn.Font = Enum.Font.SourceSansBold
+submitBtn.Parent = keyFrame
+
+local submitCorner = Instance.new("UICorner")
+submitCorner.CornerRadius = UDim.new(0, 6)
+submitCorner.Parent = submitBtn
+
+local keyStatus = Instance.new("TextLabel")
+keyStatus.Size = UDim2.new(1, 0, 0, 20)
+keyStatus.Position = UDim2.new(0, 0, 0.85, 0)
+keyStatus.BackgroundTransparency = 1
+keyStatus.Text = ""
+keyStatus.TextColor3 = Color3.fromRGB(255, 85, 85)
+keyStatus.TextSize = 13
+keyStatus.Font = Enum.Font.SourceSans
+keyStatus.Parent = keyFrame
+
+----------------------------------------------------
+-- STEP 2: BLUE SNOWFALL LOADING SCREEN (7 Seconds)
+----------------------------------------------------
+local function startLoadingSequence()
+    keyFrame:Destroy()
+
+    local loadFrame = Instance.new("Frame")
+    loadFrame.Size = UDim2.new(1, 0, 1, 0)
+    loadFrame.BackgroundColor3 = Color3.fromRGB(10, 15, 25)
+    loadFrame.BackgroundTransparency = 0.2
+    loadFrame.Parent = screenGui
+
+    -- Blue Snow Effect Container
+    local snowContainer = Instance.new("Frame")
+    snowContainer.Size = UDim2.new(1, 0, 1, 0)
+    snowContainer.BackgroundTransparency = 1
+    snowContainer.ClipsDescendants = true
+    snowContainer.Parent = loadFrame
+
+    -- Spawning Blue Snowflakes
+    local snowing = true
+    task.spawn(function()
+        while snowing do
+            task.wait(0.08)
+            local flake = Instance.new("Frame")
+            flake.Size = UDim2.new(0, math.random(4, 8), 0, math.random(4, 8))
+            flake.Position = UDim2.new(math.random(), 0, -0.05, 0)
+            flake.BackgroundColor3 = Color3.fromRGB(100, 200, 255)
+            flake.BorderSizePixel = 0
+            
+            local flakeCorner = Instance.new("UICorner")
+            flakeCorner.CornerRadius = UDim.new(1, 0)
+            flakeCorner.Parent = flake
+            flake.Parent = snowContainer
+
+            local fallDuration = math.random(3, 6)
+            local targetPos = UDim2.new(flake.Position.X.Scale + (math.random(-10, 10) / 100), 0, 1.05, 0)
+            
+            local tween = TweenService:Create(flake, TweenInfo.new(fallDuration, Enum.EasingStyle.Linear), {
+                Position = targetPos,
+                BackgroundTransparency = 1
+            })
+            tween:Play()
+            tween.Completed:Connect(function()
+                flake:Destroy()
+            end)
+        end
+    end)
+
+    -- Loading Text Box
+    local loadText = Instance.new("TextLabel")
+    loadText.Size = UDim2.new(0, 450, 0, 60)
+    loadText.Position = UDim2.new(0.5, -225, 0.45, -30)
+    loadText.BackgroundTransparency = 1
+    loadText.Text = "HACKER67 PROGAMER 😎"
+    loadText.TextColor3 = Color3.fromRGB(0, 200, 255)
+    loadText.TextSize = 26
+    loadText.Font = Enum.Font.SourceSansBold
+    loadText.Parent = loadFrame
+
+    -- Progress Bar Background
+    local barBg = Instance.new("Frame")
+    barBg.Size = UDim2.new(0, 300, 0, 12)
+    barBg.Position = UDim2.new(0.5, -150, 0.6, 0)
+    barBg.BackgroundColor3 = Color3.fromRGB(20, 30, 45)
+    barBg.BorderSizePixel = 0
+    barBg.Parent = loadFrame
+
+    local barBgCorner = Instance.new("UICorner")
+    barBgCorner.CornerRadius = UDim.new(0, 6)
+    barBgCorner.Parent = barBg
+
+    -- Progress Bar Fill
+    local barFill = Instance.new("Frame")
+    barFill.Size = UDim2.new(0, 0, 1, 0)
+    barFill.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    barFill.BorderSizePixel = 0
+    barFill.Parent = barBg
+
+    local barFillCorner = Instance.new("UICorner")
+    barFillCorner.CornerRadius = UDim.new(0, 6)
+    barFillCorner.Parent = barFill
+
+    -- 7 Seconds Fill Animation
+    local barTween = TweenService:Create(barFill, TweenInfo.new(7, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(1, 0, 1, 0)
+    })
+    barTween:Play()
+
+    task.wait(7)
+    snowing = false
+    loadFrame:Destroy()
+    
+    -- Load Main Hub Frame
+    createMainHub()
+end
+
+----------------------------------------------------
+-- STEP 3: MAIN HUB GUI (UPDATED WITH TABS)
+----------------------------------------------------
+function createMainHub()
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Size = UDim2.new(0, 340, 0, 240)
+    mainFrame.Position = UDim2.new(0.5, -170, 0.5, -120)
+    mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Active = true
+    mainFrame.Draggable = true
+    mainFrame.Parent = screenGui
+
+    local mainCorner = Instance.new("UICorner")
+    mainCorner.CornerRadius = UDim.new(0, 10)
+    mainCorner.Parent = mainFrame
+
+    local mainStroke = Instance.new("UIStroke")
+    mainStroke.Thickness = 3
+    mainStroke.Parent = mainFrame
+    applyRGB(mainStroke)
+
+    -- Top Bar Title
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.BackgroundTransparency = 1
+    title.Text = "Teleport Loop GUI HACKER67"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 15
+    title.Font = Enum.Font.SourceSansBold
+    title.Parent = mainFrame
+
+    -- Navigation Buttons Bar
+    local navBar = Instance.new("Frame")
+    navBar.Size = UDim2.new(0.9, 0, 0, 30)
+    navBar.Position = UDim2.new(0.05, 0, 0.15, 0)
+    navBar.BackgroundTransparency = 1
+    navBar.Parent = mainFrame
+
+    local function createNavBtn(name, posX)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0.3, 0, 1, 0)
+        btn.Position = UDim2.new(posX, 0, 0, 0)
+        btn.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+        btn.Text = name
+        btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        btn.TextSize = 13
+        btn.Font = Enum.Font.SourceSansBold
+        btn.Parent = navBar
+
+        local c = Instance.new("UICorner")
+        c.CornerRadius = UDim.new(0, 6)
+        c.Parent = btn
+        return btn
+    end
+
+    local mainTabBtn = createNavBtn("Main", 0)
+    local infoTabBtn = createNavBtn("Info", 0.35)
+    local creditTabBtn = createNavBtn("Credits", 0.7)
+
+    -- Container for Pages
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(0.9, 0, 0.65, 0)
+    container.Position = UDim2.new(0.05, 0, 0.3, 0)
+    container.BackgroundTransparency = 1
+    container.Parent = mainFrame
+
+    ------------------- TAB PAGES -------------------
+    
+    -- 1. Main Page
+    local mainPage = Instance.new("Frame")
+    mainPage.Size = UDim2.new(1, 0, 1, 0)
+    mainPage.BackgroundTransparency = 1
+    mainPage.Parent = container
+
+    local tpButton = Instance.new("TextButton")
+    tpButton.Size = UDim2.new(1, 0, 0, 35)
+    tpButton.Position = UDim2.new(0, 0, 0, 0)
+    tpButton.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+    tpButton.Text = "Loop TP: OFF"
+    tpButton.TextColor3 = Color3.fromRGB(255, 85, 85)
+    tpButton.TextSize = 14
+    tpButton.Font = Enum.Font.SourceSansBold
+    tpButton.Parent = mainPage
+
+    local btnCorner = Instance.new("UICorner")
+    btnCorner.CornerRadius = UDim.new(0, 6)
+    btnCorner.Parent = tpButton
+
+    local delayLabel = Instance.new("TextLabel")
+    delayLabel.Size = UDim2.new(1, 0, 0, 20)
+    delayLabel.Position = UDim2.new(0, 0, 0.32, 0)
+    delayLabel.BackgroundTransparency = 1
+    delayLabel.Text = "Delay (seconds): 0.1"
+    delayLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+    delayLabel.TextSize = 13
+    delayLabel.Font = Enum.Font.SourceSans
+    delayLabel.Parent = mainPage
+
+    local delayBox = Instance.new("TextBox")
+    delayBox.Size = UDim2.new(1, 0, 0, 32)
+    delayBox.Position = UDim2.new(0, 0, 0.52, 0)
+    delayBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    delayBox.Text = "0.1"
+    delayBox.PlaceholderText = "Set delay (0 = instant)"
+    delayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    delayBox.TextSize = 14
+    delayBox.Font = Enum.Font.SourceSans
+    delayBox.Parent = mainPage
+
+    local boxCorner = Instance.new("UICorner")
+    boxCorner.CornerRadius = UDim.new(0, 6)
+    boxCorner.Parent = delayBox
+
+    -- 2. Info Page
+    local infoPage = Instance.new("Frame")
+    infoPage.Size = UDim2.new(1, 0, 1, 0)
+    infoPage.BackgroundTransparency = 1
+    infoPage.Visible = false
+    infoPage.Parent = container
+
+    local infoText = Instance.new("TextLabel")
+    infoText.Size = UDim2.new(1, 0, 1, 0)
+    infoText.BackgroundTransparency = 1
+    infoText.Text = "Thank you for using this script!\nEnjoy your exploits!\n\nMore updates coming soon! Make sure to donate to HACKER67ST for cool exploit scripts AND SUBSCRIBE TO MY YOUTUBE CHANNEL!"
+    infoText.TextColor3 = Color3.fromRGB(255, 255, 255)
+    infoText.TextSize = 13
+    infoText.Font = Enum.Font.SourceSansBold
+    infoText.TextWrapped = true
+    infoText.Parent = infoPage
+
+    -- 3. Credits Page
+    local creditPage = Instance.new("Frame")
+    creditPage.Size = UDim2.new(1, 0, 1, 0)
+    creditPage.BackgroundTransparency = 1
+    creditPage.Visible = false
+    creditPage.Parent = container
+
+    local creditText = Instance.new("TextLabel")
+    creditText.Size = UDim2.new(1, 0, 1, 0)
+    creditText.BackgroundTransparency = 1
+    creditText.Text = "Credits to: HACKER67ST!\n\nDonate ROBUX to him to support further cool scripts!"
+    creditText.TextColor3 = Color3.fromRGB(0, 200, 255)
+    creditText.TextSize = 15
+    creditText.Font = Enum.Font.SourceSansBold
+    creditText.TextWrapped = true
+    creditText.Parent = creditPage
+
+    ------------------- TAB SWITCHING LOGIC -------------------
+    local function showTab(tabToShow)
+        mainPage.Visible = false
+        infoPage.Visible = false
+        creditPage.Visible = false
+        tabToShow.Visible = true
+    end
+
+    mainTabBtn.MouseButton1Click:Connect(function() showTab(mainPage) end)
+    infoTabBtn.MouseButton1Click:Connect(function() showTab(infoPage) end)
+    creditTabBtn.MouseButton1Click:Connect(function() showTab(creditPage) end)
+
+    ------------------- TELEPORT LOGIC -------------------
+    local isLooping = false
+    local tpDelay = 0.1
+    local pos1 = Vector3.new(171, 2, 75)
+    local pos2 = Vector3.new(169, 9, 423)
+
+    delayBox.FocusLost:Connect(function()
+        local inputNum = tonumber(delayBox.Text)
+        if inputNum and inputNum >= 0 then
+            tpDelay = inputNum
+            delayLabel.Text = "Delay (seconds): " .. tostring(tpDelay)
+        else
+            delayBox.Text = tostring(tpDelay)
+        end
+    end)
+
+    tpButton.MouseButton1Click:Connect(function()
+        isLooping = not isLooping
+        
+        if isLooping then
+            tpButton.Text = "Loop TP: ON"
+            tpButton.TextColor3 = Color3.fromRGB(85, 255, 85)
+            
+            task.spawn(function()
+                while isLooping do
+                    local character = player.Character
+                    local root = character and character:FindFirstChild("HumanoidRootPart")
+                    
+                    if root then
+                        root.CFrame = CFrame.new(pos1)
+                        if tpDelay > 0 then 
+                            task.wait(tpDelay) 
+                        else 
+                            RunService.Heartbeat:Wait() 
+                        end
+                        
+                        if not isLooping then break end
+                        
+                        root.CFrame = CFrame.new(pos2)
+                        if tpDelay > 0 then 
+                            task.wait(tpDelay) 
+                        else 
+                            RunService.Heartbeat:Wait() 
+                        end
+                    else
+                        task.wait(0.5)
+                    end
+                end
+            end)
+        else
+            tpButton.Text = "Loop TP: OFF"
+            tpButton.TextColor3 = Color3.fromRGB(255, 85, 85)
+        end
+    end)
+end
+
+----------------------------------------------------
+-- SUBMIT KEY EVENT LISTENER
+----------------------------------------------------
+submitBtn.MouseButton1Click:Connect(function()
+    local enteredKey = keyBox.Text:lower():gsub("%s+", "")
+    if validKeys[enteredKey] then
+        keyStatus.TextColor3 = Color3.fromRGB(85, 255, 85)
+        keyStatus.Text = "Key Accepted! Loading..."
+        task.wait(0.5)
+        startLoadingSequence()
+    else
+        keyStatus.TextColor3 = Color3.fromRGB(255, 85, 85)
+        keyStatus.Text = "Invalid Key! Try again."
+    end
+end)
